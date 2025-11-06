@@ -11,9 +11,9 @@ if ($conn->connect_error) {
 }
 
 $tanggal = date("Y-m-d");
-$waktu   = date("H:i:s");
 
-$sql = "INSERT INTO pengunjung (tanggal, waktu) VALUES ('$tanggal', '$waktu')";
+
+$sql = "INSERT INTO pengunjung (tanggal) VALUES ('$tanggal')";
 $conn->query($sql);
 
 $conn->close();
