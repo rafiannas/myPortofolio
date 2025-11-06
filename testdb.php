@@ -13,7 +13,9 @@ if ($conn->connect_error) {
 
 // Masukkan data tanggal hari ini ke tabel pengunjung
 $tanggal = date("Y-m-d");
-$sql = "INSERT INTO pengunjung (tanggal) VALUES ('$tanggal')";
+$waktu   = date("H:i:s");
+
+$sql = "INSERT INTO pengunjung (tanggal, waktu) VALUES ('$tanggal', '$waktu')";
 $conn->query($sql);
 
 $conn->close();
