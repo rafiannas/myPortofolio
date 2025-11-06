@@ -11,13 +11,16 @@ if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Masukkan data tanggal hari ini ke tabel pengunjung
 $tanggal = date("Y-m-d");
-$waktu   = date("H:i:s");
+$waktu = date("H:i:s");
+$ip = $_SERVER['REMOTE_ADDR'];
+$user_agent = $_SERVER['HTTP_USER_AGENT'];
 
-$sql = "INSERT INTO pengunjung (tanggal, waktu) VALUES ('$tanggal', '$waktu')";
-$conn->query($sql);
+$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ssss", $tanggal, $waktu, $ip, $user_agent);
+$stmt->execute();
 
+$stmt->close();
 $conn->close();
 ?>
 
