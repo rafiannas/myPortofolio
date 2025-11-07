@@ -11,7 +11,7 @@ if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-$$tanggal   = date("Y-m-d");
+$tanggal   = date("Y-m-d");
 $waktu     = date("H:i:s");
 $ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
