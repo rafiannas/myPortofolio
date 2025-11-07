@@ -11,31 +11,58 @@ if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-$tanggal   = date("Y-m-d");
+$$tanggal   = date("Y-m-d");
 $waktu     = date("H:i:s");
-$ip        = $_SERVER['REMOTE_ADDR'];
-$userAgent = $_SERVER['HTTP_USER_AGENT'];
-$bahasa    = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+$ip        = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+$bahasa    = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'unknown';
 $hostname  = @gethostbyaddr($ip);
 
-// ambil lokasi dari IP
-$location  = @json_decode(file_get_contents("http://ip-api.com/json/{$ip}"), true);
-$city      = $location['city'] ?? null;
-$country   = $location['country'] ?? null;
-$lokasi    = json_encode($location); // simpan seluruh hasil sebagai JSON
+// --- Ambil lokasi berdasarkan IP ---
+$locationData = @file_get_contents("http://ip-api.com/json/{$ip}");
+if ($locationData !== false) {
+    $location = json_decode($locationData, true);
+    $city     = $location['city'] ?? null;
+    $country  = $location['country'] ?? null;
+    $lokasi   = json_encode($location, JSON_UNESCAPED_UNICODE);
+} else {
+    // fallback jika gagal request ke ip-api
+    $city     = null;
+    $country  = null;
+    $lokasi   = null;
+}
 
-// Pastikan kolom di DB sesuai: tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi
+// --- Insert ke database ---
 $stmt = $conn->prepare("
   INSERT INTO pengunjung 
-  (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) 
+  (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
-$stmt->bind_param("sssssssss", $tanggal, $waktu, $ip, $userAgent, $bahasa, $hostname, $city, $country, $lokasi);
-$stmt->execute();
+if ($stmt === false) {
+    die("Prepare gagal: " . $conn->error);
+}
+
+$stmt->bind_param("sssssssss", 
+    $tanggal, 
+    $waktu, 
+    $ip, 
+    $userAgent, 
+    $bahasa, 
+    $hostname, 
+    $city, 
+    $country, 
+    $lokasi
+);
+
+if (!$stmt->execute()) {
+    error_log("Gagal insert: " . $stmt->error);
+}
 
 $stmt->close();
 $conn->close();
+
+
 ?>
 
 <html lang="en">
