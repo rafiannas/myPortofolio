@@ -22,7 +22,7 @@ $city = $location['city'] ?? null;
 $country = $location['country'] ?? null;
 $location = @json_decode(file_get_contents("http://ip-api.com/json/{$ip}"), true);
 
-$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) VALUES (?, ?, ?, ?,?, ?, ?, ?,?)");
+$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) VALUES (?, ?, ?, ?,?, ?, ?, ?,?, ?)");
 $stmt->bind_param("ssss", $tanggal, $waktu, $ip, $user_agent, $bahasa, $hostname, $city, $country, $location);
 $stmt->execute();
 
