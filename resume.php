@@ -11,19 +11,27 @@ if ($conn->connect_error) {
   die("Koneksi gagal: " . $conn->connect_error);
 }
 
-$tanggal = date("Y-m-d");
-$waktu = date("H:i:s");
-$ip = $_SERVER['REMOTE_ADDR'];
-$user_agent = $_SERVER['HTTP_USER_AGENT'];
-
+$tanggal   = date("Y-m-d");
+$waktu     = date("H:i:s");
+$ip        = $_SERVER['REMOTE_ADDR'];
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
 $bahasa    = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
 $hostname  = @gethostbyaddr($ip);
-$city = $location['city'] ?? null;
-$country = $location['country'] ?? null;
-$location = @json_decode(file_get_contents("http://ip-api.com/json/{$ip}"), true);
 
-$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) VALUES (?, ?, ?, ?,?, ?, ?, ?,?, ?)");
-$stmt->bind_param("ssss", $tanggal, $waktu, $ip, $user_agent, $bahasa, $hostname, $city, $country, $location);
+// ambil lokasi dari IP
+$location  = @json_decode(file_get_contents("http://ip-api.com/json/{$ip}"), true);
+$city      = $location['city'] ?? null;
+$country   = $location['country'] ?? null;
+$lokasi    = json_encode($location); // simpan seluruh hasil sebagai JSON
+
+// Pastikan kolom di DB sesuai: tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi
+$stmt = $conn->prepare("
+  INSERT INTO pengunjung 
+  (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+");
+
+$stmt->bind_param("sssssssss", $tanggal, $waktu, $ip, $userAgent, $bahasa, $hostname, $city, $country, $lokasi);
 $stmt->execute();
 
 $stmt->close();
