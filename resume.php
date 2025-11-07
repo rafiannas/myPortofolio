@@ -16,8 +16,14 @@ $waktu = date("H:i:s");
 $ip = $_SERVER['REMOTE_ADDR'];
 $user_agent = $_SERVER['HTTP_USER_AGENT'];
 
-$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("ssss", $tanggal, $waktu, $ip, $user_agent);
+$bahasa    = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+$hostname  = @gethostbyaddr($ip);
+$city = $location['city'] ?? null;
+$country = $location['country'] ?? null;
+$location = @json_decode(file_get_contents("http://ip-api.com/json/{$ip}"), true);
+
+$stmt = $conn->prepare("INSERT INTO pengunjung (tanggal, waktu, ip_address, user_agent, bahasa, hostname, kota, negara, lokasi) VALUES (?, ?, ?, ?,?, ?, ?, ?,?)");
+$stmt->bind_param("ssss", $tanggal, $waktu, $ip, $user_agent, $bahasa, $$hostname, $city, $$country, $location);
 $stmt->execute();
 
 $stmt->close();
